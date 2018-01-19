@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtGui import QPainter, QColor, QFont
 from PyQt5.QtCore import Qt, QTimer
 from datetime import datetime, timedelta
@@ -121,6 +121,14 @@ class ParsingInput(QWidget):
                 self.parse_text()
                 self.set_cursor_visible()
                 self.update()
+
+    def mousePressEvent(self, event):
+        print(event.pos())
+        print(event.buttons())
+        print(QApplication.clipboard().text())
+
+    def mouseReleaseEvent(self, event):
+        print(dir(event))
 
     def blink_cursor(self):
         self.cursor_visible = not self.cursor_visible

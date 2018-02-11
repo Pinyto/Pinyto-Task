@@ -184,6 +184,7 @@ class ParsingInput(QWidget):
         self.cursor_position = self.get_min_dist_pos(event.pos().x())
         self.selection = (self.cursor_position, self.cursor_position)
         self.selection_start = self.cursor_position
+        self.update()
 
     def mouseMoveEvent(self, event):
         self.cursor_position = self.get_min_dist_pos(event.pos().x())
@@ -191,6 +192,7 @@ class ParsingInput(QWidget):
             self.selection = (self.selection_start, self.cursor_position)
         else:
             self.selection = (self.cursor_position, self.selection_start)
+        self.update()
 
     def mouseReleaseEvent(self, event):
         self.cursor_position = self.get_min_dist_pos(event.pos().x())
@@ -201,6 +203,7 @@ class ParsingInput(QWidget):
         if self.selection[0] == self.selection[1]:
             self.selection = None
         self.selection_start = None
+        self.update()
 
     def blink_cursor(self):
         self.cursor_visible = not self.cursor_visible

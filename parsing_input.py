@@ -14,8 +14,10 @@ class ParsingInput(QWidget):
         self.setFocusPolicy(Qt.StrongFocus)
         self.setMinimumSize(28, 28)
         self.text = []
+        self.character_offsets = [5]
         self.parsed_blocks = []
         self.selection = None
+        self.selection_start = None
         self.cursor_position = 0
         self.cursor_visible = True
         self.cursor_timer = QTimer()
@@ -43,6 +45,7 @@ class ParsingInput(QWidget):
         font_metrics = qp.fontMetrics()
         c_start_position = 5
         cursor_pixel_position = c_start_position
+        self.character_offsets = [cursor_pixel_position]
         for i, c in enumerate(self.text):
             start_of_parsed_block = False
             end_of_parsed_block = False
@@ -70,8 +73,14 @@ class ParsingInput(QWidget):
                     sel_rect_start = c_start_position - 2
                     sel_rect_width = font_metrics.width(c["char"]) + 4
                 else:
-                    sel_rect_start = c_start_position + 2
+                    sel_rect_start = c_start_position
                     sel_rect_width = font_metrics.width(c["char"])
+                if i != self.selection[0]:
+                    sel_rect_start += 2
+                if i + 1 != self.selection[1]:
+                    sel_rect_width += 2
+                else:
+                    sel_rect_width -= 2
                 if not inside_parsed_block:
                     selection_color = QColor(100, 100, 255)
                 else:
@@ -89,6 +98,7 @@ class ParsingInput(QWidget):
             c_start_position += c_width
             if i == self.cursor_position - 1:
                 cursor_pixel_position = c_start_position
+            self.character_offsets.append(c_start_position)
         if self.hasFocus() and self.cursor_visible:
             qp.setPen(QColor(0, 0, 0))
             for start, end in self.parsed_blocks:
@@ -107,15 +117,29 @@ class ParsingInput(QWidget):
             self.set_cursor_visible()
             self.update()
         elif key == 16777219:  # Backspace
-            if self.cursor_position > 0:
-                self.text.pop(self.cursor_position - 1)
-                self.cursor_position -= 1
+            something_changed = False
+            if self.selection:
+                self.delete_selected_text()
+                something_changed = True
+            else:
+                if self.cursor_position > 0:
+                    self.text.pop(self.cursor_position - 1)
+                    self.cursor_position -= 1
+                    something_changed = True
+            if something_changed:
                 self.parse_text()
                 self.set_cursor_visible()
                 self.update()
         elif key == 16777223:  # Del
-            if self.cursor_position < len(self.text):
-                self.text.pop(self.cursor_position)
+            something_changed = False
+            if self.selection:
+                self.delete_selected_text()
+                something_changed = True
+            else:
+                if self.cursor_position < len(self.text):
+                    self.text.pop(self.cursor_position)
+                    something_changed = True
+            if something_changed:
                 self.parse_text()
                 self.set_cursor_visible()
                 self.update()
@@ -132,18 +156,51 @@ class ParsingInput(QWidget):
             )
             if len(event.text()) > 0:
                 self.text.insert(self.cursor_position, {"char": event.text()[0], "parse": True})
+                self.delete_selected_text()
                 self.cursor_position += 1
                 self.parse_text()
                 self.set_cursor_visible()
                 self.update()
 
+    def delete_selected_text(self):
+        if self.selection:
+            print(self.selection)
+            self.cursor_position = self.selection[0]
+            self.text = self.text[:self.selection[0]] + self.text[self.selection[1]:]
+            self.selection = None
+            self.selection_start = None
+
+    def get_min_dist_pos(self, click_x):
+        min_dist_pos = 0
+        min_dist = abs(self.character_offsets[0] - click_x)
+        for i, offset in enumerate(self.character_offsets[1:]):
+            d = abs(offset - click_x)
+            if d < min_dist:
+                min_dist = d
+                min_dist_pos = i + 1
+        return min_dist_pos
+
     def mousePressEvent(self, event):
-        print(event.pos())
-        print(event.buttons())
-        print(QApplication.clipboard().text())
+        self.cursor_position = self.get_min_dist_pos(event.pos().x())
+        self.selection = (self.cursor_position, self.cursor_position)
+        self.selection_start = self.cursor_position
+
+    def mouseMoveEvent(self, event):
+        self.cursor_position = self.get_min_dist_pos(event.pos().x())
+        if self.selection_start < self.cursor_position:
+            self.selection = (self.selection_start, self.cursor_position)
+        else:
+            self.selection = (self.cursor_position, self.selection_start)
 
     def mouseReleaseEvent(self, event):
-        print(dir(event))
+        self.cursor_position = self.get_min_dist_pos(event.pos().x())
+        if self.selection_start < self.cursor_position:
+            self.selection = (self.selection_start, self.cursor_position)
+        else:
+            self.selection = (self.cursor_position, self.selection_start)
+        if self.selection[0] == self.selection[1]:
+            self.selection = None
+        self.selection_start = None
 
     def blink_cursor(self):
         self.cursor_visible = not self.cursor_visible

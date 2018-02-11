@@ -15,6 +15,7 @@ class ParsingInput(QWidget):
         self.setMinimumSize(28, 28)
         self.text = []
         self.parsed_blocks = []
+        self.selection = None
         self.cursor_position = 0
         self.cursor_visible = True
         self.cursor_timer = QTimer()
@@ -64,12 +65,26 @@ class ParsingInput(QWidget):
             if start_of_parsed_block:
                 c_start_position += 4
             c_width = font_metrics.width(c["char"])
-            if inside_parsed_block:
-                qp.setBrush(QColor(0, 0, 0))
-                qp.setPen(QColor(255, 255, 255))
-            else:
-                qp.setPen(QColor(0, 0, 0))
-                qp.setBrush(QColor(255, 255, 255))
+            if self.selection and self.selection[0] <= i < self.selection[1]:
+                if start_of_parsed_block or end_of_parsed_block:
+                    sel_rect_start = c_start_position - 2
+                    sel_rect_width = font_metrics.width(c["char"]) + 4
+                else:
+                    sel_rect_start = c_start_position + 2
+                    sel_rect_width = font_metrics.width(c["char"])
+                if not inside_parsed_block:
+                    selection_color = QColor(100, 100, 255)
+                else:
+                    selection_color = QColor(60, 60, 168)
+                qp.setBrush(selection_color)
+                qp.setPen(selection_color)
+                qp.drawRect(sel_rect_start, 6, sel_rect_width, 16)
+            qp.setPen(QColor(inside_parsed_block*255,
+                             inside_parsed_block*255,
+                             inside_parsed_block*255))
+            qp.setBrush(QColor(255-inside_parsed_block*255,
+                               255-inside_parsed_block*255,
+                               255-inside_parsed_block*255))
             qp.drawText(c_start_position, 20, c["char"])
             c_start_position += c_width
             if i == self.cursor_position - 1:

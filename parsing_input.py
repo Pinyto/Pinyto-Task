@@ -1,10 +1,12 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-from PyQt5.QtWidgets import QWidget
+from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtGui import QPainter, QColor, QFont, QTextCursor, QTextDocument
 from PyQt5.QtCore import Qt, QTimer
 from datetime import datetime, timedelta
 import re
+ALL_CHARACTERS = list("ABCDEFGHIJKLMNOPQRSTUVWXYZÜÖÄẞ ßüöäabcdefghijklmnopqrstuvwxyz0987654321" +
+                      "^°§ℓ»«$€„“”—`-,–.•´~$|~`+%\"';\\/{}*?()-:@…_[]^!<>=&ſ/¹²³›‹¢¥‚‘’°")
 
 
 class ParsingInput(QWidget):
@@ -108,7 +110,7 @@ class ParsingInput(QWidget):
 
     def keyPressEvent(self, event):
         key = event.key()
-        if key == 16777234:  # left arrow
+        if key == Qt.Key_Left:
             if event.modifiers() & Qt.CTRL:
                 new_pos = max(0, self.get_text_str().rfind(" ", 0, max(0, self.cursor.position() - 1)))
             else:
@@ -123,7 +125,7 @@ class ParsingInput(QWidget):
                 self.cursor.setPosition(max(0, new_pos))
             self.set_cursor_visible()
             self.update()
-        elif key == 16777236:  # right arrow
+        elif key == Qt.Key_Right:
             if event.modifiers() & Qt.CTRL:
                 next_space = self.get_text_str().find(" ", self.cursor.position() + 1, len(self.text))
                 if next_space < 0:
@@ -142,19 +144,33 @@ class ParsingInput(QWidget):
                 self.cursor.setPosition(min(len(self.text), new_pos))
             self.set_cursor_visible()
             self.update()
-        elif key == 16777232:  # Pos1
-            self.cursor.setPosition(0)
+        elif key == Qt.Key_Home:
+            if event.modifiers() & Qt.SHIFT:
+                if self.cursor.hasSelection():
+                    self.cursor.setPosition(0, mode=QTextCursor.KeepAnchor)
+                else:
+                    self.cursor.setPosition(self.cursor.position(), mode=QTextCursor.MoveAnchor)
+                    self.cursor.setPosition(0, mode=QTextCursor.KeepAnchor)
+            else:
+                self.cursor.setPosition(0)
             self.set_cursor_visible()
             self.update()
-        elif key == 16777233:  # End
-            self.cursor.setPosition(len(self.text))
+        elif key == Qt.Key_End:
+            if event.modifiers() & Qt.SHIFT:
+                if self.cursor.hasSelection():
+                    self.cursor.setPosition(len(self.text), mode=QTextCursor.KeepAnchor)
+                else:
+                    self.cursor.setPosition(self.cursor.position(), mode=QTextCursor.MoveAnchor)
+                    self.cursor.setPosition(len(self.text), mode=QTextCursor.KeepAnchor)
+            else:
+                self.cursor.setPosition(len(self.text))
             self.set_cursor_visible()
             self.update()
-        elif key == 16777216:  # ESC
+        elif key == Qt.Key_Escape:
             self.cursor.clearSelection()
             self.set_cursor_visible()
             self.update()
-        elif key == 16777219:  # Backspace
+        elif key == Qt.Key_Backspace:
             something_changed = False
             if self.cursor.hasSelection():
                 self.delete_selected_text()
@@ -168,7 +184,7 @@ class ParsingInput(QWidget):
                 self.parse_text()
                 self.set_cursor_visible()
                 self.update()
-        elif key == 16777223:  # Del
+        elif key == Qt.Key_Delete:
             something_changed = False
             if self.cursor.hasSelection():
                 self.delete_selected_text()
@@ -181,24 +197,42 @@ class ParsingInput(QWidget):
                 self.parse_text()
                 self.set_cursor_visible()
                 self.update()
+        elif key == Qt.Key_C and event.modifiers() & Qt.CTRL:
+            selected_text = self.get_selected_text()
+            print("Selected Text: {}".format(selected_text))
+            if len(selected_text) > 0:
+                QApplication.clipboard().setText(selected_text)
+        elif key == Qt.Key_V and event.modifiers() & Qt.CTRL:
+            self.delete_selected_text()
+            clipboard_text = QApplication.clipboard().text()
+            self.text = self.text[:self.cursor.position()] + \
+                [{"char": c, "parse": True} for c in clipboard_text] + \
+                self.text[self.cursor.position():]
+            self.parse_text()
+            self.cursor.setPosition(self.cursor.position() + len(clipboard_text))
+            self.set_cursor_visible()
+            self.update()
         else:
-            mod = int(event.modifiers())
-            print(
-                "Key 0x{:d}/{}/ {} {} {}".format(
-                    key,
-                    event.text(),
-                    "  [+shift]" if event.modifiers() & Qt.SHIFT else "",
-                    "  [+ctrl]" if event.modifiers() & Qt.CTRL else "",
-                    "  [+alt]" if event.modifiers() & Qt.ALT else ""
-                )
-            )
             if len(event.text()) > 0:
-                self.delete_selected_text()
-                self.text.insert(self.cursor.position(), {"char": event.text()[0], "parse": True})
-                self.parse_text()
-                self.cursor.setPosition(self.cursor.position() + 1)
-                self.set_cursor_visible()
-                self.update()
+                typed_text = ""
+                for c in event.text():
+                    if c in ALL_CHARACTERS:
+                        typed_text += c
+                if len(typed_text):
+                    self.delete_selected_text()
+                    self.text = self.text[:self.cursor.position()] + \
+                        [{"char": c, "parse": True} for c in typed_text] + \
+                        self.text[self.cursor.position():]
+                    self.parse_text()
+                    self.cursor.setPosition(self.cursor.position() + len(typed_text))
+                    self.set_cursor_visible()
+                    self.update()
+
+    def get_selected_text(self):
+        if self.cursor.hasSelection():
+            return "".join([c["char"] for c in self.text[self.cursor.selectionStart():self.cursor.selectionEnd()]])
+        else:
+            return ""
 
     def delete_selected_text(self):
         if self.cursor.hasSelection():

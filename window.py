@@ -13,6 +13,7 @@ class MainWindow(QWidget):
         self.setWindowIcon(QIcon('Icon/Icon.png'))
 
         self.new_task_input = ParsingInput()
+        self.new_task_input.edit_complete.connect(self.add_task)
         hbox = QHBoxLayout()
         hbox.addWidget(self.new_task_input)
         vbox = QVBoxLayout()
@@ -22,3 +23,6 @@ class MainWindow(QWidget):
 
         self.new_task_input.focusWidget()
         self.show()
+
+    def add_task(self, task):
+        print(task.text)

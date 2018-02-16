@@ -2,14 +2,17 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtGui import QPainter, QColor, QFont, QTextCursor, QTextDocument
-from PyQt5.QtCore import Qt, QTimer
+from PyQt5.QtCore import Qt, QTimer, pyqtSignal
 from datetime import datetime, timedelta
+from task import Task
 import re
 ALL_CHARACTERS = list("ABCDEFGHIJKLMNOPQRSTUVWXYZÜÖÄẞ ßüöäabcdefghijklmnopqrstuvwxyz0987654321" +
                       "^°§ℓ»«$€„“”—`-,–.•´~$|~`+%\"';\\/{}*?()-:@…_[]^!<>=&ſ/¹²³›‹¢¥‚‘’°")
 
 
 class ParsingInput(QWidget):
+    edit_complete = pyqtSignal(Task)
+
     def __init__(self):
         super().__init__(flags=Qt.WindowTitleHint | Qt.WindowCloseButtonHint |
                          Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint)
@@ -212,6 +215,8 @@ class ParsingInput(QWidget):
             self.cursor.setPosition(self.cursor.position() + len(clipboard_text))
             self.set_cursor_visible()
             self.update()
+        elif key == Qt.Key_Enter or key == Qt.Key_Return:
+            self.edit_complete.emit(self.get_task())
         else:
             if len(event.text()) > 0:
                 typed_text = ""
@@ -314,3 +319,7 @@ class ParsingInput(QWidget):
                     text = text[:match.start()] + " "*(match.end()-match.start()) + text[match.end():]
                     self.parsed_blocks.append((match.start(), match.end()))
 
+    def get_task(self):
+        new_task = Task()
+        new_task.text = self.get_text_str()
+        return new_task

@@ -18,6 +18,7 @@ class ParsingInput(QWidget):
                          Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint)
         self.setFocusPolicy(Qt.StrongFocus)
         self.setMinimumSize(28, 28)
+        self.setCursor(Qt.IBeamCursor)
         self.text = []
         self.character_offsets = [5]
         self.parsed_blocks = []
@@ -217,6 +218,11 @@ class ParsingInput(QWidget):
             self.update()
         elif key == Qt.Key_Enter or key == Qt.Key_Return:
             self.edit_complete.emit(self.get_task())
+            self.text = []
+            self.cursor.setPosition(0)
+            self.parse_text()
+            self.set_cursor_visible()
+            self.update()
         else:
             if len(event.text()) > 0:
                 typed_text = ""

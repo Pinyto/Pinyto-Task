@@ -11,6 +11,7 @@ class Task(object):
         self.end_date = None
         self.not_before = datetime.now()
         self.expected_duration = None
+        self.location = None
         self.weight = None
         self.urgency = None
         self.depends_on = []

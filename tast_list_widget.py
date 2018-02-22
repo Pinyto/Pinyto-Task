@@ -3,6 +3,7 @@
 from __future__ import division, print_function, unicode_literals
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QWidgetItem, QSizePolicy
 from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtGui import QPainter, QColor
 from task_list_item import TaskListItem
 from task import Task
 
@@ -15,11 +16,12 @@ class TaskList(QWidget):
                          Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint)
         self.tasks = task_list
         size_policy = QSizePolicy()
-        size_policy.setHorizontalPolicy(QSizePolicy.MinimumExpanding)
+        size_policy.setHorizontalPolicy(QSizePolicy.MinimumExpanding)  # This increases the min width
         size_policy.setHorizontalStretch(128)
         self.setSizePolicy(size_policy)
         self.list_layout = QVBoxLayout()
         self.setLayout(self.list_layout)
+        self.update()
 
     def update(self, *__args):
         while self.list_layout.count() > 0:
@@ -32,8 +34,24 @@ class TaskList(QWidget):
         for task in self.tasks:
             item = TaskListItem(task)
             item.deleted.connect(self.task_del)
-            self.list_layout.addWidget(item, alignment=Qt.AlignCenter)
+            self.list_layout.addWidget(item)
         super().update(*__args)
 
     def task_del(self, task):
         self.task_deleted.emit(task)
+
+    def paintEvent(self, e):
+        qp = QPainter()
+        qp.begin(self)
+        qp.setRenderHint(QPainter.Antialiasing)
+        qp.setRenderHint(QPainter.HighQualityAntialiasing)
+        self.draw(qp)
+        qp.end()
+
+    def draw(self, qp):
+        size = self.size()
+        w = size.width()
+        h = size.height()
+        qp.setPen(QColor(128, 128, 128))
+        qp.setBrush(QColor(255, 255, 255))
+        qp.drawRoundedRect(0, 0, w, h, 6, 6)

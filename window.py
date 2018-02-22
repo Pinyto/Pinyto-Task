@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QVBoxLayout
 from PyQt5.QtGui import QIcon
+from PyQt5.QtCore import Qt
 from parsing_input import ParsingInput
 from tast_list_widget import TaskList
+from task import Task
 
 
 class MainWindow(QWidget):
@@ -13,7 +15,9 @@ class MainWindow(QWidget):
         self.setWindowTitle('Pinyto Task')
         self.setWindowIcon(QIcon('Icon/Icon.png'))
 
-        self.task_list = []
+        example_task_1 = Task(text="Spülmaschine ausräumen", weight=1.0)
+        example_task_2 = Task(text="Steuererklärung", weight=2.0)
+        self.task_list = [example_task_1, example_task_2]
 
         self.new_task_input = ParsingInput()
         self.new_task_input.edit_complete.connect(self.add_task)
@@ -23,7 +27,7 @@ class MainWindow(QWidget):
         vbox.addLayout(hbox)
         self.task_list_widget = TaskList(self.task_list)
         self.task_list_widget.task_deleted.connect(self.del_task)
-        vbox.addWidget(self.task_list_widget)
+        vbox.addWidget(self.task_list_widget, alignment=Qt.AlignTop)
         vbox.addStretch(1)
         self.setLayout(vbox)
 

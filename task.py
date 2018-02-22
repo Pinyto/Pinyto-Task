@@ -4,18 +4,18 @@ from datetime import datetime
 
 
 class Task(object):
-    def __init__(self):
-        self.text = ""
-        self.due_date = None
-        self.due_date_fuzziness = None
+    def __init__(self, text="", due_date=None, due_date_fuzziness=None, weight=None, depends_on=[], sub_tasks=[]):
+        self.text = text
+        self.due_date = due_date
+        self.due_date_fuzziness = due_date_fuzziness
         self.end_date = None
         self.not_before = datetime.now()
         self.expected_duration = None
         self.location = None
-        self.weight = None
+        self.weight = weight
         self.urgency = None
-        self.depends_on = []
-        self.sub_tasks = []
+        self.depends_on = depends_on
+        self.sub_tasks = sub_tasks
         self.repeat = None
         self.finished = False
 

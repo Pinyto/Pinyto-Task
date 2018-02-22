@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QLabel, QSizePolicy, QPushButton, QStyle, QCommonStyle
-from PyQt5.QtGui import QPainter, QColor
+from PyQt5.QtGui import QPainter, QColor, QIcon
 from task import Task
 
 
@@ -25,9 +25,14 @@ class TaskListItem(QWidget):
         name_widget.setText(self.task.text)
         task_layout.addWidget(name_widget, alignment=Qt.AlignLeading)
         task_layout.addStretch(255)
+        edit_button = QPushButton()
+        edit_button.setFlat(True)
+        edit_button.setIcon(QIcon("Icon/Edit.png"))
+        task_layout.addWidget(edit_button, alignment=Qt.AlignRight)
         del_button = QPushButton()
         del_button.setFlat(True)
-        del_button.setIcon(QCommonStyle().standardIcon(QStyle.SP_TrashIcon))
+        #del_button.setIcon(QCommonStyle().standardIcon(QStyle.SP_TrashIcon))
+        del_button.setIcon(QIcon("Icon/Trash.png"))
         del_button.clicked.connect(self.delete_task)
         task_layout.addWidget(del_button, alignment=Qt.AlignRight)
         self.setLayout(task_layout)

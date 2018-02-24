@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from PyQt5.QtCore import Qt, pyqtSignal, QDate
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSizePolicy, QPushButton, QLineEdit
-from PyQt5.QtWidgets import QCalendarWidget
+from PyQt5.QtWidgets import QCalendarWidget, QGroupBox
 #from PyQt5.QtWidgets import QStyle, QCommonStyle
 from PyQt5.QtGui import QPainter, QColor, QIcon
 from task import Task
@@ -49,13 +49,17 @@ class TaskListItem(QWidget):
         del_button.clicked.connect(self.delete_task)
         first_line.addWidget(del_button, alignment=Qt.AlignRight)
         task_layout.addLayout(first_line)
-        date_line = QHBoxLayout()
+        second_line = QHBoxLayout()
+        self.due_date_box = QGroupBox("Due Date")
+        due_date_box_layout = QVBoxLayout()
         self.due_date_calendar = QCalendarWidget()
         if self.task.due_date:
             self.due_date_calendar.setSelectedDate(self.task.due_date)
         self.due_date_calendar.selectionChanged.connect(self.setDueDate)
-        date_line.addWidget(self.due_date_calendar, alignment=Qt.AlignLeft)
-        task_layout.addLayout(date_line)
+        due_date_box_layout.addWidget(self.due_date_calendar)
+        self.due_date_box.setLayout(due_date_box_layout)
+        second_line.addWidget(self.due_date_box, alignment=Qt.AlignLeft)
+        task_layout.addLayout(second_line)
         self.setLayout(task_layout)
         self.setEditMode(False)
 
@@ -93,7 +97,7 @@ class TaskListItem(QWidget):
         self.edit_name.setVisible(edit)
         self.edit_button.setVisible(not edit)
         self.leave_edit_mode_button.setVisible(edit)
-        self.due_date_calendar.setVisible(edit)
+        self.due_date_box.setVisible(edit)
         if edit:
             self.edit_name.setFocus()
 

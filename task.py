@@ -42,3 +42,9 @@ class Task(object):
             self.due_date = datetime.combine(new_date, self.due_date.time())
         else:
             self.due_date = datetime.combine(new_date, time(hour=12, minute=0))
+
+    def get_due_date_time(self):
+        if self.due_date:
+            return self.due_date.time
+        else:
+            return None

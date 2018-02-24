@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSizePoli
 from PyQt5.QtWidgets import QCalendarWidget, QGroupBox
 #from PyQt5.QtWidgets import QStyle, QCommonStyle
 from PyQt5.QtGui import QPainter, QColor, QIcon
+from time_selector_widget import TimeSelector
 from task import Task
 
 
@@ -57,6 +58,8 @@ class TaskListItem(QWidget):
             self.due_date_calendar.setSelectedDate(self.task.due_date)
         self.due_date_calendar.selectionChanged.connect(self.setDueDate)
         due_date_box_layout.addWidget(self.due_date_calendar)
+        self.due_date_time = TimeSelector(self.task.get_due_date_time())
+        due_date_box_layout.addWidget(self.due_date_time)
         self.due_date_box.setLayout(due_date_box_layout)
         second_line.addWidget(self.due_date_box, alignment=Qt.AlignLeft)
         task_layout.addLayout(second_line)

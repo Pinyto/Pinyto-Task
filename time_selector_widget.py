@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QSpinBox, QLabel
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QPainter, QColor, QFont
 from datetime import time
-from math import sin, cos, pi
+from math import sin, cos, pi, sqrt, asin
 
 
 class TimeSelector(QWidget):
@@ -15,6 +15,7 @@ class TimeSelector(QWidget):
                          Qt.WindowMinimizeButtonHint | Qt.WindowMaximizeButtonHint)
         self.setMinimumSize(270, 270)
         self.time = initial_time
+        self.setCursor(Qt.ArrowCursor)
         v_layout = QVBoxLayout()
         v_layout.addStretch(1)
         h_layout = QHBoxLayout()
@@ -119,12 +120,34 @@ class TimeSelector(QWidget):
         qp.setPen(QColor(255, 255, 255))
         qp.drawText(int(round(w/2-3)), int(round(h/2+4)), ":")
 
+    def mousePressEvent(self, event):
+        x, y = event.pos().x(), event.pos().y()
+        size = self.size()
+        cx, cy = size.width()/2, size.height()/2
+        dist_to_center = sqrt((x - cx)**2 + (y - cy)**2)
+        alpha = asin((x-cx)/dist_to_center)
+        if y - cy > 0:
+            alpha = pi - alpha
+        alpha = alpha % (2 * pi)
+        if 133 >= dist_to_center > 111:
+            self.hour_changed(int(round(alpha / (2 * pi) * 12) % 12))
+        elif 111 >= dist_to_center > 88:
+            self.hour_changed(int(round(alpha / (2 * pi) * 12) % 12 + 12))
+        elif 88 >= dist_to_center > 52:
+            self.minute_changed(int(round(alpha / (2 * pi) * 60) % 60))
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            self.mousePressEvent(event)
+
     def hour_changed(self, new_value):
         self.time = time(hour=new_value, minute=self.time.minute if type(self.time) == time else 0)
+        self.hour_edit.setValue(self.time.hour)
         self.update()
         self.time_changed.emit(self.time)
 
     def minute_changed(self, new_value):
         self.time = time(hour=self.time.hour if type(self.time) == time else 0, minute=new_value)
+        self.minute_edit.setValue(self.time.minute)
         self.update()
         self.time_changed.emit(self.time)

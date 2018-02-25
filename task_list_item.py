@@ -59,6 +59,7 @@ class TaskListItem(QWidget):
         self.due_date_calendar.selectionChanged.connect(self.setDueDate)
         due_date_box_layout.addWidget(self.due_date_calendar)
         self.due_date_time = TimeSelector(self.task.get_due_date_time())
+        self.due_date_time.time_changed.connect(self.setDueDateTime)
         due_date_box_layout.addWidget(self.due_date_time)
         self.due_date_box.setLayout(due_date_box_layout)
         second_line.addWidget(self.due_date_box, alignment=Qt.AlignLeft)
@@ -110,3 +111,8 @@ class TaskListItem(QWidget):
 
     def setDueDate(self):
         self.task.set_due_date(self.due_date_calendar.selectedDate().toPyDate())
+        self.update()
+
+    def setDueDateTime(self, new_time):
+        self.task.set_due_date_time(new_time)
+        self.update()

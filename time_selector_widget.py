@@ -120,7 +120,7 @@ class TimeSelector(QWidget):
         qp.setPen(QColor(255, 255, 255))
         qp.drawText(int(round(w/2-3)), int(round(h/2+4)), ":")
 
-    def mousePressEvent(self, event):
+    def left_mouse_button_pressed(self, event):
         x, y = event.pos().x(), event.pos().y()
         size = self.size()
         cx, cy = size.width()/2, size.height()/2
@@ -136,9 +136,13 @@ class TimeSelector(QWidget):
         elif 88 >= dist_to_center > 52:
             self.minute_changed(int(round(alpha / (2 * pi) * 60) % 60))
 
+    def mousePressEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            self.left_mouse_button_pressed(event)
+
     def mouseMoveEvent(self, event):
         if event.buttons() == Qt.LeftButton:
-            self.mousePressEvent(event)
+            self.left_mouse_button_pressed(event)
 
     def hour_changed(self, new_value):
         self.time = time(hour=new_value, minute=self.time.minute if type(self.time) == time else 0)

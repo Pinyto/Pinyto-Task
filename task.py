@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-from datetime import datetime, time
+from datetime import datetime, date, time
 
 
 class Task(object):
@@ -42,6 +42,12 @@ class Task(object):
             self.due_date = datetime.combine(new_date, self.due_date.time())
         else:
             self.due_date = datetime.combine(new_date, time(hour=12, minute=0))
+
+    def set_due_date_time(self, new_time):
+        if self.due_date:
+            self.due_date = datetime.combine(self.due_date.date(), new_time)
+        else:
+            self.due_date = datetime.combine(date.today(), new_time)
 
     def get_due_date_time(self):
         if self.due_date:

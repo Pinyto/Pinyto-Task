@@ -1,10 +1,10 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
-from PyQt5.QtCore import Qt, pyqtSignal, QDate
+from PyQt5.QtCore import Qt, pyqtSignal, QMimeData
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QSizePolicy, QPushButton, QLineEdit
 from PyQt5.QtWidgets import QCalendarWidget, QGroupBox
 #from PyQt5.QtWidgets import QStyle, QCommonStyle
-from PyQt5.QtGui import QPainter, QColor, QIcon
+from PyQt5.QtGui import QPainter, QColor, QIcon, QDrag, QPixmap
 from time_selector_widget import TimeSelector
 from task import Task
 
@@ -86,6 +86,18 @@ class TaskListItem(QWidget):
         if progress > 0:
             qp.setBrush(QColor(0, 200, 0))
             qp.drawRoundedRect(0, 0, int(round(w*progress)), h, 6, 6)
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() != Qt.LeftButton:
+            return
+        mime_data = QMimeData()
+        mime_data.setData('application/pinytoTask', self.task.to_json().encode('utf-8'))
+        mime_data.setText(self.task.text)
+        drag_object = QDrag(self)
+        drag_object.setMimeData(mime_data)
+        drag_object.setHotSpot(event.pos() - self.rect().topLeft())
+        drag_object.setPixmap(self.grab())
+        dropAction = drag_object.exec_(Qt.MoveAction)
 
     def delete_task(self):
         self.deleted.emit(self.task)

@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 from datetime import datetime, date, time
+import json
 
 
 class Task(object):
@@ -8,7 +9,6 @@ class Task(object):
         self.text = text
         self.due_date = due_date
         self.due_date_fuzziness = due_date_fuzziness
-        self.end_date = None
         self.not_before = datetime.now()
         self.expected_duration = None
         self.location = None
@@ -54,3 +54,39 @@ class Task(object):
             return self.due_date.time
         else:
             return None
+
+    def to_json(self):
+        return json.dumps({
+            'text': self.text,
+            'due_date': self.due_date.isoformat() if self.due_date else None,
+            'due_date_fuzziness': self.due_date_fuzziness,
+            'not_before': self.not_before.isoformat() if self.due_date else None,
+            'expected_duration': self.expected_duration,
+            'location': self.location,
+            'weight': self.weight,
+            'urgency': self.urgency,
+            'depends_on': self.depends_on,
+            'sub_tasks': self.sub_tasks,
+            'repeat': self.repeat,
+            'finished': self.finished
+        })
+
+
+class TaskFactory(object):
+    @staticmethod
+    def from_json(task_json):
+        t = Task(text=task_json['text'],
+                 due_date=datetime.strptime(task_json['due_date'], "YYYY-MM-DDTHH:MM:SS"),
+                 due_date_fuzziness=task_json['due_date_fuzziness'],
+                 weight=task_json['weight'])
+        if task_json['not_before']:
+            t.not_before = datetime.strptime(task_json['not_before'], "YYYY-MM-DDTHH:MM:SS")
+        for task_id in task_json['depends_on']:
+            t.depends_on.append(TaskFactory.find_task(task_id))
+        for task_id in task_json['sub_tasks']:
+            t.sub_tasks.append(TaskFactory.find_task(task_id))
+        return t
+
+    @staticmethod
+    def find_task(task_id):
+        pass

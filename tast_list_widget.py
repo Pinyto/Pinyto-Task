@@ -21,6 +21,7 @@ class TaskList(QWidget):
         self.setSizePolicy(size_policy)
         self.list_layout = QVBoxLayout()
         self.setLayout(self.list_layout)
+        self.setAcceptDrops(True)
         self.update()
 
     def update(self, *__args):
@@ -34,7 +35,7 @@ class TaskList(QWidget):
         for task in self.tasks:
             item = TaskListItem(task)
             item.deleted.connect(self.task_del)
-            self.list_layout.addWidget(item)
+            self.list_layout.addWidget(item, alignment=Qt.AlignTop)
         super().update(*__args)
 
     def task_del(self, task):
@@ -55,3 +56,21 @@ class TaskList(QWidget):
         qp.setPen(QColor(128, 128, 128))
         qp.setBrush(QColor(255, 255, 255))
         qp.drawRoundedRect(0, 0, w, h, 6, 6)
+
+    def dragEnterEvent(self, event):
+        if event.mimeData().hasFormat('application/pinytoTask'):
+            event.accept()
+
+    def dragMoveEvent(self, event):
+        y = event.pos().y()
+        print(y)
+        if event.mimeData().hasFormat('application/pinytoTask'):
+            print(event.mimeData().data('application/pinytoTask'))
+
+    def dropEvent(self, event):
+        event.setDropAction(Qt.MoveAction)
+        if event.mimeData().hasFormat('application/pinytoTask'):
+            pass
+        y = event.pos().y()
+        print(y)
+        event.accept()
